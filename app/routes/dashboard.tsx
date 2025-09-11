@@ -2,9 +2,9 @@ import { AlarmClockMinus, AlarmClockPlus, Coins, Crosshair, Hourglass, Tally5, T
 import { useEffect, useState } from "react";
 import { data, useNavigate } from "react-router";
 import { BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar, ResponsiveContainer, Label } from "recharts";
-import { supabase, TBA_API_KEY } from "~/supabase";
-import type { PredictionStats, TBAMatchOutcome, WeekHourLog } from "~/types";
-import { getWeeksSince } from "~/util";
+import { supabase, TBA_API_KEY } from "public/supabase";
+import { getWeeksSince } from "public/util";
+import type { WeekHourLog } from "public/types";
 
 export default function Dashboard() {
     const navigate = useNavigate();
