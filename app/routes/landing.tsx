@@ -34,7 +34,7 @@ export default function Home() {
     <div className="relative h-[100dvh]">
       <img
         className="h-[100dvh] brightness-50 w-full object-cover fixed top-0 inset-0 z-0"
-        src="./landing.png"
+        src="./landing.jpg"
         alt="Landing background"
       />
 
