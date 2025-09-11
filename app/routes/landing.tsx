@@ -64,7 +64,7 @@ export default function Home() {
               <label className="block text-white text-sm font-medium mb-2">
                 Select Your Name
               </label>
-              <select onChange={(e) => setSelectedMember(e.target.value)} className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-300 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+              <select onChange={(e) => setSelectedMember(e.target.value)} className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-300 backdrop-blur-sm focus:outline-none cursor-poin focus:ring-2 focus:ring-white/75 focus:border-transparent transition-all duration-300">
                 <option value="" className="text-gray-800">Choose your name...</option>
                 {
                   memberNames.map((item, index) => (
@@ -74,7 +74,7 @@ export default function Home() {
               </select>
             </div>
 
-            <button onClick={handleEnterDashboard} className="w-full bg-gradient-to-r from-orange-900 to-orange-500 cursor-pointer hover:from-orange-700 hover:to-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-white/50">
+            <button onClick={handleEnterDashboard} className="w-full bg-gradient-to-r from-orange-900 to-orange-500 cursor-pointer hover:from-orange-700 hover:to-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-white/75">
               Enter Dashboard
             </button>
           </div>

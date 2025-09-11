@@ -4,7 +4,7 @@ import { data, useNavigate } from "react-router";
 import { BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar, ResponsiveContainer, Label } from "recharts";
 import { supabase, TBA_API_KEY } from "public/supabase";
 import { getWeeksSince } from "public/util";
-import type { WeekHourLog } from "public/types";
+import type { PredictionStats, TBAMatchOutcome, WeekHourLog } from "public/types";
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -105,7 +105,8 @@ export default function Dashboard() {
                 setMatchEntries(matchesScouted || []);
                 setIsClockedIn(member['clocked_in']);
 
-                setTBAOutcomes(await fetchTBAMatchesGrouped(eventKeys))
+                setTBAOutcomes(await fetchTBAMatchesGrouped(eventKeys));
+
             } catch (err) {
                 console.error('Error fetching dashboard data:', err);
             } finally {
@@ -246,11 +247,11 @@ export default function Dashboard() {
 
     // Rest of your component JSX stays the same, just change the logout button:
     return (
-        <div className="min-h-screen bg-gray-900 text-white px-0 pt-8 pb-20">
+        <div className="min-h-screen bg-gray-900 text-white px-0 pt-8 pb-20 flex flex-col items-center">
             {/* Header */}
-            <div className="flex bg-black/85 border-black/25 mx-8 border-1 shadow-lg px-5 py-3 rounded-lg justify-between items-center mb-8 shadow-orange-900/25 ">
+            <div className="flex bg-black/85 border-black/25 mx-8 gap-10 border-1 shadow-lg px-5 py-3 rounded-lg justify-between items-center mb-8 shadow-orange-900/25 ">
                 <div>
-                    <h1 className="font-nippori text-4xl font-bold text-orange-400">
+                    <h1 className="font-nippori text-4xl font-bold text-white">
                         Welcome, {memberData?.first_name}!
                     </h1>
                 </div>
@@ -272,21 +273,21 @@ export default function Dashboard() {
             {!isClockedIn ?
                 <div className="flex w-full items-center flex-col mt-10 gap-5">
                     <h3 className="text-lg">You are currently <span className="font-bold text-red-400 text-shadow-red-700/25 text-shadow-md animate-pulse">CLOCKED OUT</span>.</h3>
-                    <button onClick={handleClockIn} className="gap-10 flex flex-row items-center justify-around font-bold color-gray-900 text-4xl bg-gradient-to-r from-green-700/25 to-green-400/25 px-15 py-10 rounded-xl border-green-300/100 border-1 shadow-xl shadow-green-900/40">
+                    <button onClick={handleClockIn} className="cursor-pointer gap-10 flex flex-row items-center justify-around font-bold color-gray-900 text-4xl bg-gradient-to-r from-green-700/25 to-green-400/25 px-15 py-10 rounded-xl border-green-300/100 border-1 shadow-xl shadow-green-900/40">
                         <h1>Clock In</h1>
                         <AlarmClockPlus color="white" size={50} />
                     </button>
                 </div>
                 : <div className="flex w-full items-center flex-col mt-10 gap-5">
                     <h3 className="text-lg">You are currently <span className="font-bold text-green-400 text-shadow-green-700/25 text-shadow-md animate-pulse">CLOCKED IN</span>.</h3>
-                    <button onClick={handleClockOut} className="gap-10 flex flex-row items-center justify-around font-bold color-gray-900 text-4xl bg-gradient-to-r from-red-700/25 to-red-400/25 px-15 py-10 rounded-xl border-red-300/100 border-1 shadow-xl shadow-red-900/40">
+                    <button onClick={handleClockOut} className="cursor-pointer gap-10 flex flex-row items-center justify-around font-bold color-gray-900 text-4xl bg-gradient-to-r from-red-700/25 to-red-400/25 px-15 py-10 rounded-xl border-red-300/100 border-1 shadow-xl shadow-red-900/40">
                         <h1>Clock Out</h1>
                         <AlarmClockMinus color="white" size={50} />
                     </button>
                 </div>
             }
 
-            <div className="mt-10 rounded-lg border-1 border-gray-500/50 bg-gradient-to-br from-gray-800 to-gray-900 mx-8 py-5 flex flex-col items-center justify-around gap-3">
+            <div className="w-full max-w-3xl mt-10 rounded-lg border-1 border-gray-500/50 bg-gradient-to-br from-gray-800 to-gray-900 mx-8 py-5 flex flex-col items-center justify-around gap-3">
                 <div className="flex flex-row gap-3 items-center">
                     <Hourglass color="white" size={24} />
                     <h1 className=" text-2xl text-center">Total hours (all time):</h1>
@@ -305,27 +306,27 @@ export default function Dashboard() {
                 </ResponsiveContainer>
             </div>
 
-            <div className="flex flex-row items-center justify-center mt-3">
+            <div className="w-full max-w-3xl flex flex-row items-center justify-center mt-3">
                 <Coins size={58} className="flex-2" />
-                <div className=" flex-5 border-l-4 border-l-gray-500/50">
-                    <h1 className="mt-3 text-2xl text-center">Prediction balance</h1>
+                <div className="flex-5 border-l-3 border-l-gray-500/50">
+                    <h1 className="mt-3 text-2xl text-center text-gray-400">Prediction balance</h1>
                     <h1 className="mt-3 text-5xl font-bold text-center">{`$${predictionStats?.balance ?? 0}`}</h1>
                 </div>
             </div>
 
-            <div className="flex flex-row items-center justify-center mt-10">
+            <div className="w-full max-w-3xl flex flex-row items-center justify-center mt-10">
                 <Tally5 size={58} className="flex-2" />
-                <div className=" flex-5 border-l-4 border-l-gray-500/50">
-                    <h1 className="mt-3 text-2xl text-center">Total matches scouted</h1>
+                <div className=" flex-5 border-l-3 border-l-gray-500/50">
+                    <h1 className="mt-3 text-2xl text-center text-gray-400">Total matches scouted</h1>
                     <h1 className="mt-3 text-5xl font-bold text-center">{totalMatchesScouted}</h1>
                 </div>
             </div>
 
-            <div className="flex flex-row items-center justify-center mt-10">
+            <div className="w-full max-w-3xl flex flex-row items-center justify-center mt-10">
                 <Crosshair size={58} className="flex-2" />
-                <div className=" flex-5 border-l-4 border-l-gray-500/50">
-                    <h1 className="mt-3 text-2xl text-center">Prediction accuracy</h1>
-                    <h1 className="mt-3 text-5xl font-bold text-center">{`${Math.round((predictionStats?.correct ?? 0 / (predictionStats?.correct ?? 0) + (predictionStats?.incorrect ?? 0)) * 1000) / 10}%`}</h1>
+                <div className=" flex-5 border-l-3 border-l-gray-500/50">
+                    <h1 className="mt-3 text-2xl text-center text-gray-400">Prediction accuracy</h1>
+                    <h1 className="mt-3 text-5xl font-bold text-center">{`${Math.round(((predictionStats?.correct ?? 0) / ((predictionStats?.correct ?? 0) + (predictionStats?.incorrect ?? 0))) * 1000) / 10}%`}</h1>
                 </div>
             </div>
 
@@ -346,6 +347,25 @@ export default function Dashboard() {
                     </div>
                     <div className="border-t border-gray-700 pt-4">
                         <p className="text-gray-400 text-sm">Total Points Scouted Across Matches</p>
+                    </div>
+                </div>
+
+                {/* Most Scouted Team */}
+                <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-2xl p-4 border border-gray-700 hover:border-orange-500 transition-all duration-300 transform hover:scale-105">
+                    <div className="flex items-center justify-between mb-4 gap-3">
+                        <div className="bg-orange-500/20 p-3 rounded-full">
+                            <svg className="w-8 h-8 text-orange-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" />
+                                <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z" />
+                            </svg>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-orange-400 text-sm font-medium uppercase tracking-wide">Top Team</p>
+                            <p className="text-white text-3xl font-bold">{mostScoutedTeam}</p>
+                        </div>
+                    </div>
+                    <div className="border-t border-gray-700 pt-4">
+                        <p className="text-gray-400 text-sm">Most Scouted Team Across Matches</p>
                     </div>
                 </div>
 
@@ -385,24 +405,6 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                {/* Most Scouted Team */}
-                <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-2xl p-4 border border-gray-700 hover:border-orange-500 transition-all duration-300 transform hover:scale-105">
-                    <div className="flex items-center justify-between mb-4 gap-3">
-                        <div className="bg-orange-500/20 p-3 rounded-full">
-                            <svg className="w-8 h-8 text-orange-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" />
-                                <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z" />
-                            </svg>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-orange-400 text-sm font-medium uppercase tracking-wide">Top Team</p>
-                            <p className="text-white text-3xl font-bold">{mostScoutedTeam}</p>
-                        </div>
-                    </div>
-                    <div className="border-t border-gray-700 pt-4">
-                        <p className="text-gray-400 text-sm">Most Scouted Team Across Matches</p>
-                    </div>
-                </div>
             </div>
         </div >
     );
