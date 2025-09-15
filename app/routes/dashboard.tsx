@@ -23,6 +23,10 @@ export default function Dashboard() {
     const [tbaOutcomes, setTBAOutcomes] = useState<{ 'event_key': string; 'matches': TBAMatchOutcome[] }[] | null>(null);
 
     useEffect(() => {
+        fetchData();
+    }, [navigate]);
+
+    function fetchData() {
         // Get member data from session storage
         const storedMember = sessionStorage.getItem('currentMember');
 
@@ -115,7 +119,7 @@ export default function Dashboard() {
         };
 
         fetchMemberData();
-    }, [navigate]);
+    }
 
     useEffect(() => {
 
@@ -212,7 +216,7 @@ export default function Dashboard() {
 
             setIsClockedIn(true);
 
-            window.location.reload();
+            fetchData();
 
         } catch (err) {
             console.error('Error clocking in:', err);
@@ -239,7 +243,8 @@ export default function Dashboard() {
 
             setIsClockedIn(false);
 
-            window.location.reload();
+            fetchData();
+            
         } catch (err) {
             console.error('Error clocking out:', err);
         }
