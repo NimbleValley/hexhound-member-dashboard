@@ -27,6 +27,8 @@ export default function Dashboard() {
 
     const [showQRCode, setShowQRCode] = useState<boolean>(false);
 
+    const selfClockIn = false;
+
     useEffect(() => {
         fetchData();
     }, [navigate]);
@@ -204,12 +206,16 @@ export default function Dashboard() {
 
     const handleClockIn = async () => {
 
+        if (!selfClockIn) {
+            alert("You can't clock in from the WebTransportBidirectionalStream, admin has disabled it.");
+            return;
+        }
+
         if (!confirm('Are you sure you wish to clock IN?'))
             return;
 
         //setIsScannerOpen(true);
 
-        alert("You can't clock in from the WebTransportBidirectionalStream, admin has disabled it.");
 
         /*
 
@@ -312,7 +318,8 @@ export default function Dashboard() {
                 <div className="flex w-full items-center flex-col mt-10 gap-5">
                     <h3 className="text-lg">You are currently <span className="font-bold text-red-400 text-shadow-red-700/25 text-shadow-md animate-pulse">CLOCKED OUT</span>.</h3>
                     <button onClick={handleClockIn} className="cursor-pointer gap-10 flex flex-row items-center justify-around font-bold color-gray-900 text-4xl bg-gradient-to-r from-green-700/25 to-green-400/25 px-15 py-10 rounded-xl border-green-300/100 border-1 shadow-xl shadow-green-900/40">
-                        <h1>Clock In</h1>
+                        {selfClockIn ? <h1>Clock In</h1> : <h1>Scan card to clock in</h1>
+                        }
                         <AlarmClockPlus color="white" size={50} />
                     </button>
                 </div>
