@@ -11,10 +11,12 @@
   "dependencies": {
     "@react-router/node": "^7.7.1",
     "@supabase/supabase-js": "^2.57.4",
+    "html5-qrcode": "^2.3.8",
     "isbot": "^5.1.27",
     "lucide-react": "^0.543.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-qr-barcode-scanner": "^2.1.10",
     "react-router": "^7.7.1",
     "recharts": "^3.2.0"
   },

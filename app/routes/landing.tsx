@@ -10,8 +10,6 @@ export default function Home() {
     async function getMembers() {
       const { data: names } = await supabase.from('members').select();
 
-      console.log(names);
-
       if (names && names.length >= 1) {
         setMemberNames(names);
       }
@@ -22,6 +20,16 @@ export default function Home() {
 
   const handleEnterDashboard = () => {
     if (selectedMember) {
+
+      if(selectedMember == 'ADMIN') {
+        return;
+      }
+
+      if(selectedMember == 'SCANNER') {
+        window.open(`/scan`, '_self');
+        return;
+      }
+
       sessionStorage.setItem('currentMember', selectedMember);
       console.log(selectedMember);
       window.open(`/dashboard`, '_self');
@@ -66,8 +74,10 @@ export default function Home() {
               </label>
               <select onChange={(e) => setSelectedMember(e.target.value)} className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-300 backdrop-blur-sm focus:outline-none cursor-poin focus:ring-2 focus:ring-white/75 focus:border-transparent transition-all duration-300">
                 <option value="" className="text-gray-800">Choose your name...</option>
+                <option value="SCANNER" className="text-gray-800">SCANNER</option>
+                <option value="ADMIN" className="text-gray-800">ADMIN</option>
                 {
-                  memberNames.map((item, index) => (
+                  memberNames.sort((a, b) => {return a.localeCompare(b)}).map((item, index) => (
                     <option key={index} value={JSON.stringify(item)} className="text-gray-800">{`${item['first_name']} ${item['last_initial']}`}</option>
                   ))
                 }

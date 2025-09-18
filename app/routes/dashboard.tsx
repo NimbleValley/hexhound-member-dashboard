@@ -1,6 +1,6 @@
 import { AlarmClockMinus, AlarmClockPlus, Coins, Crosshair, Hourglass, Tally5, Target } from "lucide-react";
 import { useEffect, useState } from "react";
-import { data, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar, ResponsiveContainer, Label } from "recharts";
 import { supabase, TBA_API_KEY } from "public/supabase";
 import { getWeeksSince } from "public/util";
@@ -20,7 +20,12 @@ export default function Dashboard() {
     const [predictionStats, setPredictionStats] = useState<PredictionStats | null>(null);
     const [mostScoutedTeam, setMostScoutedTeam] = useState<number>(0);
 
+    const [scannerOpen, setIsScannerOpen] = useState<boolean>(false);
+    const [data, setData] = useState("Not Found");
+
     const [tbaOutcomes, setTBAOutcomes] = useState<{ 'event_key': string; 'matches': TBAMatchOutcome[] }[] | null>(null);
+
+    const [showQRCode, setShowQRCode] = useState<boolean>(false);
 
     useEffect(() => {
         fetchData();
@@ -202,6 +207,12 @@ export default function Dashboard() {
         if (!confirm('Are you sure you wish to clock IN?'))
             return;
 
+        //setIsScannerOpen(true);
+
+        alert("You can't clock in from the WebTransportBidirectionalStream, admin has disabled it.");
+
+        /*
+
         try {
             const { data, error } = await supabase
                 .from('time_entries')
@@ -221,6 +232,7 @@ export default function Dashboard() {
         } catch (err) {
             console.error('Error clocking in:', err);
         }
+            */
     };
 
     const handleClockOut = async () => {
@@ -244,7 +256,7 @@ export default function Dashboard() {
             setIsClockedIn(false);
 
             fetchData();
-            
+
         } catch (err) {
             console.error('Error clocking out:', err);
         }
@@ -252,21 +264,42 @@ export default function Dashboard() {
 
     // Rest of your component JSX stays the same, just change the logout button:
     return (
-        <div className="min-h-screen bg-gray-900 text-white px-0 pt-8 pb-20 flex flex-col items-center">
+        <div className="min-h-screen bg-gray-900 text-white px-5 pt-8 pb-20 flex flex-col items-center">
             {/* Header */}
-            <div className="flex bg-black/85 border-black/25 mx-8 gap-10 border-1 shadow-lg px-5 py-3 rounded-lg justify-between items-center mb-8 shadow-orange-900/25 ">
-                <div>
+            <div className="border-1 border-gray-900/85 flex bg-gradient-to-br from-orange-400/50 to-orange-700/50 border-black/25 mx-8 gap-10 border-1 shadow-lg px-5 py-3 rounded-lg justify-between items-center mb-8 shadow-black/50 ">
+                <div className="flex flex-col items-start gap-3">
                     <h1 className="font-nippori text-4xl font-bold text-white">
                         Welcome, {memberData?.first_name}!
                     </h1>
+                    <button className="cursor-pointer text-lg" onClick={() => setShowQRCode(true)}>Show ID Code</button>
                 </div>
                 <button
                     onClick={handleLogout}
-                    className="bg-orange-600 hover:bg-orange-700 px-4 py-2 rounded-lg transition-colors"
+                    className="bg-orange-600/40 border-1 border-orange-600 hover:bg-orange-700 px-4 py-2 rounded-lg transition-colors"
                 >
                     Logout
                 </button>
             </div>
+
+            {showQRCode && (
+                <div className="fixed inset-0 z-50 bg-black/90 flex flex-col justify-center items-center">
+                    <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-4 text-center">
+                        <div className="mb-4">
+                            <img
+                                src={`https://qrcode.tec-it.com/API/QRCode?data=${memberData?.id}&backcolor=%23ffffff&method=download`}
+                                alt="QR Code"
+                                className="mx-auto max-w-full h-auto"
+                            />
+                        </div>
+                        <button
+                            className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition-colors cursor-pointer"
+                            onClick={() => setShowQRCode(false)}
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {loading && (
                 <div className='fixed inset-0 z-50 bg-black/90 flex flex-col justify-center items-center'>
