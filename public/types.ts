@@ -1,11 +1,12 @@
 export type WeekHourLog = {
     'hours': number;
-    'week': number;
+    'week': string;
 };
 
 export type TBAMatchOutcome = {
-    'winner': 'red' | 'blue';
+    'winning_alliance': 'red' | 'blue';
     'match_number': number;
+    'comp_level': string;
 }
 
 export type PredictionStats = {

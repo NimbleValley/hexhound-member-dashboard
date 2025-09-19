@@ -5,10 +5,13 @@ import { BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar, Responsive
 import { supabase, TBA_API_KEY } from "public/supabase";
 import { getWeeksSince } from "public/util";
 import type { PredictionStats, TBAMatchOutcome, WeekHourLog } from "public/types";
+import type { Database } from "database.types";
+
+type Member = Database["public"]["Tables"]["members"]["Row"];
 
 export default function Dashboard() {
     const navigate = useNavigate();
-    const [memberData, setMemberData] = useState(null);
+    const [memberData, setMemberData] = useState<Member | null>(null);
     const [timeEntries, setTimeEntries] = useState<any[]>([]);
     const [matchEntries, setMatchEntries] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -67,18 +70,21 @@ export default function Dashboard() {
                 let tempTotal: number = 0;
                 let weekLogs: WeekHourLog[] = [];
 
-                let weekLogBuilder = {
+                let weekLogBuilder:any = {};
 
-                }
                 times?.forEach((time) => {
-                    tempTotal += time.total_hours;
 
-                    let currentWeek = getWeeksSince(new Date('2025-09-10'), time.session_date);
+                    if (time.total_hours && time.session_date) {
+                        tempTotal += time.total_hours;
 
-                    if (!weekLogBuilder[String(currentWeek)]) {
-                        weekLogBuilder[String(currentWeek)] = time.total_hours;
-                    } else {
-                        weekLogBuilder[String(currentWeek)] += time.total_hours;
+                        let currentWeek = getWeeksSince(new Date('2025-09-10'), new Date(time.session_date));
+
+                        if (!weekLogBuilder[String(currentWeek)]) {
+                            weekLogBuilder[String(currentWeek)] = time.total_hours;
+                        } else {
+                            weekLogBuilder[String(currentWeek)] += time.total_hours;
+                        }
+
                     }
                 });
 
@@ -99,22 +105,24 @@ export default function Dashboard() {
                     .order('team_number', { ascending: false });
 
                 let matchesScoutedCounter: number = matchesScouted?.length ?? 0;
-                let mostScoutedTeam = matchesScouted[0].team_number ?? 0;
+                let mostScoutedTeam = matchesScouted?.[0]?.team_number ?? 0;
                 let totalPointsCounter: number = 0;
                 let eventKeys: string[] = [];
                 matchesScouted?.forEach((value) => {
-                    totalPointsCounter += value.total_points;
-                    !eventKeys.includes(value.event_key) ? eventKeys.push(value.event_key) : '';
+                    totalPointsCounter += value.total_points ?? 0;
+
+                    if(value.event_key)
+                        !eventKeys.includes(value.event_key) ? eventKeys.push(value.event_key) : '';
                 });
 
                 setMostScoutedTeam(mostScoutedTeam);
                 setTotalMatchesScouted(matchesScoutedCounter);
                 setTotalPointsScouted(totalPointsCounter);
 
-                setMemberData({ ...member, id: memberId });
+                setMemberData(member);
                 setTimeEntries(times || []);
                 setMatchEntries(matchesScouted || []);
-                setIsClockedIn(member['clocked_in']);
+                setIsClockedIn(member?.['clocked_in'] ?? false);
 
                 setTBAOutcomes(await fetchTBAMatchesGrouped(eventKeys));
 
@@ -173,7 +181,7 @@ export default function Dashboard() {
                 }
 
                 const matches = await response.json();
-                const filtered = matches.filter((item) => { return item['comp_level'] == 'qm' });
+                const filtered = matches.filter((item:TBAMatchOutcome) => { return item['comp_level'] == 'qm' });
                 return { 'event_key': key, 'matches': filtered };
             });
 
@@ -194,7 +202,7 @@ export default function Dashboard() {
                 .update({
                     clocked_in: status
                 })
-                .eq('id', memberData.id);
+                .eq('id', memberData?.id ?? '-1');
 
 
             if (error) throw error;
@@ -252,7 +260,7 @@ export default function Dashboard() {
                 .update({
                     clock_out_time: new Date().toISOString()
                 })
-                .eq('member_id', memberData.id)
+                .eq('member_id', memberData?.id ?? '-1')
                 .is('clock_out_time', null);
 
             await setClockStatus(false);
