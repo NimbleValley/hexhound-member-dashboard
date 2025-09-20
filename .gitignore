@@ -9,4 +9,3 @@
 /.vercel/
 
 # Database Auth
-/public/supabase.ts

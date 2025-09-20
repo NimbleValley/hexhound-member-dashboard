@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "public/supabase";
+import type { Database } from "database.types";
 
 export default function Home() {
 
-  const [memberNames, setMemberNames] = useState<string[]>([]);
-  const [selectedMember, setSelectedMember] = useState<string>(null);
+  const [memberNames, setMemberNames] = useState<Database['public']['Tables']['members']['Row'][]>([]);
+  const [selectedMember, setSelectedMember] = useState<string | null>(null);
 
   useEffect(() => {
     async function getMembers() {
@@ -22,6 +23,7 @@ export default function Home() {
     if (selectedMember) {
 
       if(selectedMember == 'ADMIN') {
+        window.open(`/admin`, '_self');
         return;
       }
 
@@ -72,19 +74,19 @@ export default function Home() {
               <label className="block text-white text-sm font-medium mb-2">
                 Select Your Name
               </label>
-              <select onChange={(e) => setSelectedMember(e.target.value)} className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-300 backdrop-blur-sm focus:outline-none cursor-poin focus:ring-2 focus:ring-white/75 focus:border-transparent transition-all duration-300">
+              <select onChange={(e) => setSelectedMember(e.target.value)} className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-300 backdrop-blur-sm focus:outline-none cursor-pointer focus:ring-2 focus:ring-white/75 focus:border-transparent transition-all duration-300">
                 <option value="" className="text-gray-800">Choose your name...</option>
                 <option value="SCANNER" className="text-gray-800">SCANNER</option>
                 <option value="ADMIN" className="text-gray-800">ADMIN</option>
                 {
-                  memberNames.sort((a, b) => {return a.localeCompare(b)}).map((item, index) => (
+                  memberNames.sort((a, b) => {return a.first_name?.localeCompare(b.first_name)}).map((item, index) => (
                     <option key={index} value={JSON.stringify(item)} className="text-gray-800">{`${item['first_name']} ${item['last_initial']}`}</option>
                   ))
                 }
               </select>
             </div>
 
-            <button onClick={handleEnterDashboard} className="w-full bg-gradient-to-r from-orange-900 to-orange-500 cursor-pointer hover:from-orange-700 hover:to-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-white/75">
+            <button onClick={handleEnterDashboard} className="w-full bg-gradient-to-r from-orange-900 to-orange-500 cursor-pointer hover:brightness-75 hover:contrast-120 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-white/75">
               Enter Dashboard
             </button>
           </div>

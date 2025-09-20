@@ -16,6 +16,9 @@ export default function Scan() {
         setLoading(true);
         const { data: items } = await supabase.from('members').select();
 
+        setCurrentMember(null);
+        setSelectedID('');
+
         if (items && items.length >= 1) {
             setMembers(items);
             console.log(items)
@@ -101,7 +104,7 @@ export default function Scan() {
     };
 
     return (
-        <div className="relative h-[100dvh]">
+        <div className="relative h-[100dvh] text-white">
             <img
                 className="h-[100dvh] brightness-25 w-full object-cover fixed top-0 inset-0 z-1 select-none"
                 src="./scan.jpg"
@@ -112,6 +115,13 @@ export default function Scan() {
                 <div className='fixed inset-0 z-50 bg-black/90 flex flex-col justify-center items-center'>
                     <div className="animate-spin rounded-full h-16 w-16 border-4 border-orange-500 border-t-transparent mb-4"></div>
                     <h2 className='text-3xl text-white font-bold'>Loading Scanner...</h2>
+                </div>
+            )}
+
+            {true && (
+                <div className='fixed md:hidden inset-0 z-50 bg-black/90 flex flex-col justify-center items-center gap-5'>
+                    <h2 className='text-2xl text-white font-bold mx-5'>This page requires a larger screen to visit. Try using a laptop.</h2>
+                    <a href="/" className="text-orange-400">Return Home</a>
                 </div>
             )}
 
@@ -160,5 +170,5 @@ export default function Scan() {
                 </div>
             </div>
         </div>
-    )
+    );
 }
