@@ -1,5 +1,5 @@
 import type { Database } from "database.types";
-import { ChartBar, Check, Clock, Home, Minimize, RefreshCcw, TrendingUp, UserRound, UserRoundMinus, UserRoundPen, UserRoundPlus } from "lucide-react";
+import { ChartBar, Check, Clock, Home, Minimize, RefreshCcw, TrendingUp, UserRound, UserRoundMinus, UserRoundPen, UserRoundPlus, X } from "lucide-react";
 import Html5QrcodePlugin from "public/html5QrcodePlugin";
 import { ADMIN_PASSWORD, supabase } from "public/supabase";
 import type { WeekHourLog } from "public/types";
@@ -20,6 +20,12 @@ type TotalStatistics = {
     'totalMatches': number;
 }
 
+type CreateMemberType = {
+    'clocked_in': boolean;
+    'first_name': string;
+    'last_initial': string;
+}
+
 export default function Admin() {
 
     const [members, setMembers] = useState<MemberType[]>([]);
@@ -30,11 +36,16 @@ export default function Admin() {
     const [selected, setSelected] = useState<string[]>([]);
 
     const [currentPassword, setCurrentPassword] = useState<string>('');
-    const [authenticated, setAuthenticated] = useState<boolean>(true);
+    const [authenticated, setAuthenticated] = useState<boolean>(false);
 
     const [active, setActive] = useState<MemberType | null>(null);
 
     const [sortStatistic, setSortStatistic] = useState<'totalHours' | 'last7' | 'totalMatches'>('totalHours');
+
+    const [showAddMember, setShowAddMember] = useState<boolean>(false);
+    const [showEditMember, setShowEditMember] = useState<boolean>(false);
+    const [currentlyCreatingMember, setCurrentlyCreatingMember] = useState<CreateMemberType | null>(null);
+    const [currentlyEditingMember, setCurrentlyEditingMember] = useState<MemberType | null>(null);
 
     async function fetchData() {
         setLoading(true);
@@ -59,6 +70,9 @@ export default function Admin() {
         setMatchEntries(matches ?? []);
 
         setLoading(false);
+
+        setSelected([]);
+        setActive(null);
     }
 
     useEffect(() => {
@@ -182,6 +196,99 @@ export default function Admin() {
 
     }
 
+    const generateBlankNewMember = () => {
+        setCurrentlyCreatingMember({
+            first_name: 'John',
+            last_initial: 'D',
+            clocked_in: false,
+        });
+
+        setShowAddMember(true);
+    }
+
+    const startEditingMember = (member: MemberType) => {
+        setCurrentlyEditingMember({
+            first_name: member.first_name,
+            last_initial: member.last_initial,
+            clocked_in: member.clocked_in,
+            id: member.id,
+            created_at: member.created_at
+        });
+
+        setShowEditMember(true);
+    }
+
+    const uploadNewMember = async (member: CreateMemberType | null) => {
+        if (!member)
+            return;
+
+        setLoading(true);
+
+        try {
+            const { error } = await supabase
+                .from('members')
+                .insert(member)
+        } catch (error) {
+            alert(error);
+        }
+
+        setShowAddMember(false);
+        setLoading(false);
+
+        fetchData();
+    }
+
+    const updateMember = async (member: MemberType | null) => {
+        if (!member)
+            return;
+
+        setLoading(true);
+
+        try {
+            const { error } = await supabase
+                .from('members')
+                .update(member)
+                .eq('id', member.id)
+        } catch (error) {
+            alert(error);
+        }
+
+        setShowEditMember(false);
+        setLoading(false);
+
+        fetchData();
+    }
+
+    const deleteSelected = async () => {
+
+        if (!confirm('Are you sure you want to delete all selected members? You can readd the later but all past records will be permenantly deleted.')) {
+            return;
+        }
+
+        setLoading(true);
+        selected.forEach(async (item) => {
+            const memberDelete = await supabase
+                .from('members')
+                .delete()
+                .eq('id', item)
+
+            const timeDelete = await supabase
+                .from('time_entries')
+                .delete()
+                .eq('member_id', item)
+
+            const matchDelete = await supabase
+                .from('matches_predictions')
+                .delete()
+                .eq('member_id', item)
+        });
+
+        alert('Deleted member, may take a few seconds to update. Refresh in top right corner to confirm deletion.');
+
+        setLoading(false);
+        fetchData();
+    }
+
     return (
         <div className="relative h-[100dvh] text-white max-h-screen">
             <img
@@ -201,6 +308,90 @@ export default function Admin() {
                 <div className='fixed md:hidden inset-0 z-50 bg-black/90 flex flex-col justify-center items-center gap-5'>
                     <h2 className='text-2xl text-white font-bold mx-5'>This page requires a larger screen to visit. Try using a laptop.</h2>
                     <a href="/" className="text-orange-400">Return Home</a>
+                </div>
+            )}
+
+            {showAddMember && (
+                <div className='fixed inset-0 z-50 bg-black/67 flex flex-col justify-center items-center'>
+                    <div className="bg-black/50 p-10 gap-4 backdrop-blur-xs rounded-lg p-0 border-1 flex flex-col border-gray-600">
+
+                        <h1 className="text-3xl font-semibold select-none">Add New Member</h1>
+
+                        <div>
+                            <h2 className="text-white font-md font-light">First name: </h2>
+                            <input placeholder="John" onChange={(e) => {
+                                setCurrentlyCreatingMember(prev => ({
+                                    first_name: e.target.value,
+                                    clocked_in: prev?.clocked_in ?? false,
+                                    last_initial: prev?.last_initial ?? 'D',
+                                }));
+                            }} className="w-full px-2 py-1 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-300 backdrop-blur-sm focus:outline-none cursor-text focus:ring-2 focus:ring-white/75 focus:border-transparent transition-all duration-300" type="text"></input>
+                        </div>
+
+                        <div>
+                            <h2 className="text-white font-md font-light">Last initial: </h2>
+                            <input placeholder="D" onChange={(e) => {
+                                setCurrentlyCreatingMember(prev => ({
+                                    first_name: prev?.first_name ?? 'John',
+                                    clocked_in: prev?.clocked_in ?? false,
+                                    last_initial: e.target.value,
+                                }));
+                            }} className="w-full px-2 py-1 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-300 backdrop-blur-sm focus:outline-none cursor-text focus:ring-2 focus:ring-white/75 focus:border-transparent transition-all duration-300" type="text"></input>
+                        </div>
+
+                        <div className="flex flex-row flex-1 gap-2 justify-between">
+                            <button onClick={() => uploadNewMember(currentlyCreatingMember)} className="flex-1 w-full bg-gradient-to-r from-orange-900 to-orange-500 cursor-pointer hover:brightness-75 hover:contrast-120 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-white/75">
+                                Create
+                            </button>
+                            <button onClick={() => setShowAddMember(false)} className=" bg-red-700 cursor-pointer hover:brightness-75 hover:contrast-120 text-white font-semibold py-3 px-3 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-white/75">
+                                <X />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showEditMember && (
+                <div className='fixed inset-0 z-50 bg-black/67 flex flex-col justify-center items-center'>
+                    <div className="bg-black/50 p-10 gap-4 backdrop-blur-xs rounded-lg p-0 border-1 flex flex-col border-gray-600">
+
+                        <h1 className="text-3xl font-semibold select-none">Edit Existing Member</h1>
+
+                        <div>
+                            <h2 className="text-white font-md font-light">First name: </h2>
+                            <input placeholder={currentlyEditingMember?.first_name} onChange={(e) => {
+                                setCurrentlyEditingMember(prev => ({
+                                    first_name: e.target.value,
+                                    clocked_in: prev?.clocked_in ?? false,
+                                    last_initial: prev?.last_initial ?? 'D',
+                                    id: prev?.id ?? '',
+                                    created_at: prev?.created_at ?? String(new Date())
+                                }));
+                            }} className="w-full px-2 py-1 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-300 backdrop-blur-sm focus:outline-none cursor-text focus:ring-2 focus:ring-white/75 focus:border-transparent transition-all duration-300" type="text"></input>
+                        </div>
+
+                        <div>
+                            <h2 className="text-white font-md font-light">Last initial: </h2>
+                            <input placeholder={currentlyEditingMember?.last_initial} onChange={(e) => {
+                                setCurrentlyEditingMember(prev => ({
+                                    first_name: prev?.first_name ?? 'John',
+                                    clocked_in: prev?.clocked_in ?? false,
+                                    last_initial: e.target.value,
+                                    id: prev?.id ?? '',
+                                    created_at: prev?.created_at ?? String(new Date())
+                                }));
+                            }} className="w-full px-2 py-1 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-300 backdrop-blur-sm focus:outline-none cursor-text focus:ring-2 focus:ring-white/75 focus:border-transparent transition-all duration-300" type="text"></input>
+                        </div>
+
+                        <div className="flex flex-row flex-1 gap-2 justify-between">
+                            <button onClick={() => updateMember(currentlyEditingMember)} className="flex-1 w-full bg-gradient-to-r from-orange-900 to-orange-500 cursor-pointer hover:brightness-75 hover:contrast-120 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-white/75">
+                                Save Edit
+                            </button>
+                            <button onClick={() => setShowEditMember(false)} className=" bg-red-700 cursor-pointer hover:brightness-75 hover:contrast-120 text-white font-semibold py-3 px-3 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-white/75">
+                                <X />
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 
@@ -226,28 +417,28 @@ export default function Admin() {
                         </div>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-[1fr_3fr] pb-4 px-4 gap-5 overflow-hidden h-full">
-                        <div className="flex flex-col w-full h-full">
-                            <div className="flex flex-1 flex-col items-center bg-black/10 gap-4 py-1 overflow-y-scroll h-full border-1 px-1 backdrop-blur-sm rounded-t-lg p-0 border-gray-800 shadow-2xl">
-                                {members.map((item) => {
+                    <div className="grid grid-cols-[1fr_3fr] pb-4 px-4 gap-5 overflow-hidden h-full max-h-screen">
+                        <div className="flex flex-col w-full h-full overflow-y-auto">
+                            <div className="flex flex-1 flex-col items-center bg-black/10 gap-2 py-1 overflow-y-scroll h-full border-1 px-1 backdrop-blur-sm rounded-t-lg p-0 border-gray-800 shadow-2xl">
+                                {members.sort((a, b) => a.first_name.localeCompare(b.first_name)).map((item) => {
                                     return (
-                                        <button onClick={() => selectActive(item)} className={`min-h-3xl flex rounded-sm border border-white/20 gap-2 w-full px-2 py-2 shadow-2xl cursor-pointer hover:border-orange-500/75 transition ${active?.id == item.id ? 'bg-orange-500/50 hover:bg-orange-800/50' : 'bg-black/90 hover:bg-black'}`}>
+                                        <button onClick={() => selectActive(item)} className={`min-h-3xl flex rounded-sm items-center border border-white/20 gap-4 w-full px-2 py-2 shadow-2xl cursor-pointer hover:border-orange-500/75 transition ${active?.id == item.id ? 'bg-orange-500/50 hover:bg-orange-800/50' : 'bg-black/90 hover:bg-black'}`}>
                                             <button onClick={() => toggleMember(item)} className="flex items-center justify-center cursor-pointer h-8 rounded-md w-8 border-1 border-gray-200/25 hover:border-gray-300/85 bg-black/67">
                                                 {selected.includes(item.id) &&
                                                     <Check color="lightgreen" />
                                                 }
                                             </button>
-                                            <h1 className="font-semibold text-2xl">{item.first_name} {item.last_initial}</h1>
+                                            <h1 className="font-regular text-xl">{item.first_name} {item.last_initial}</h1>
                                         </button>
                                     )
                                 })}
                             </div>
                             <div className="relative w-full flex flex-row bg-black/90 rounded-b-lg fixed bottom-0 left-0 self-end border border-white/20 w-full px-3 py-1 shadow-2xl justify-between">
-                                <button className="cursor-pointer border-green-400/10 hover:border-green-400/50 border-2 p-1 rounded-sm">
+                                <button onClick={generateBlankNewMember} className="cursor-pointer border-green-400/10 hover:border-green-400/50 border-2 p-1 rounded-sm">
                                     <UserRoundPlus size={28} />
                                 </button>
                                 {selected.length > 0 &&
-                                    <button className="cursor-pointer flex flex-row items-center gap-2 border-red-400/10 hover:border-red-400/50 border-2 p-1 rounded-sm">
+                                    <button onClick={deleteSelected} className="cursor-pointer flex flex-row items-center gap-2 border-red-400/10 hover:border-red-400/50 border-2 p-1 rounded-sm">
                                         <h2>Delete Selected</h2>
                                         <UserRoundMinus size={28} />
                                     </button>
@@ -259,14 +450,16 @@ export default function Admin() {
                                 <div className="min-w-md bg-black/10 w-full h-full backdrop-blur-xs rounded-lg p-0 border-1 flex flex-col border-gray-800 shadow-2xl">
                                     <div className="overflow-y-auto flex flex-col px-5 py-5 gap-5 h-full">
                                         <div className="flex flex-row gap-5 w-full items-center justify-between">
-                                            <div className="cursor-pointer hover:scale-110" onClick={() => setActive(null)}>
+                                            <button className="cursor-pointer hover:scale-110" onClick={() => startEditingMember(active)}>
                                                 <UserRoundPen />
-                                            </div>
+                                            </button>
                                             <h1 className=" text-3xl">Viewing <span className="font-semibold">{active ? active.first_name : 'John'} {active ? active.last_initial : 'D'}</span></h1>
-                                            <div className="cursor-pointer hover:scale-110" onClick={() => setActive(null)}>
+                                            <button className="cursor-pointer hover:scale-110" onClick={() => setActive(null)}>
                                                 <Minimize />
-                                            </div>
+                                            </button>
                                         </div>
+
+                                        <a className="self-center underline text-gray-300" href={`https://qrcode.tec-it.com/API/QRCode?data=${active?.id}&backcolor=%23ffffff&quietzone=2&method=download`}>Download QR Code</a>
 
                                         <div className="bg-gray-900/50 rounded-lg p-4 w-xl self-center border border-gray-700">
                                             <div className="flex items-center gap-3 mb-2">
@@ -361,17 +554,17 @@ export default function Admin() {
                                     </div>
                                 </div>
                             ) : (
-                                <div>
+                                <div className="h-full">
                                     <h1 className="text-lg mb-5">No member selected, showing leaderboard. Select member on left to view individual statistics.</h1>
 
                                     {members &&
-                                        
-                                        <div className="min-w-md bg-black/10 w-full h-full backdrop-blur-xs rounded-lg border-1 flex flex-col border-gray-800 shadow-2xl">
-                                            
 
-                                            <div className="overflow-y-auto flex-1">
+                                        <div className="min-w-md bg-black/10 w-full h-auto backdrop-blur-xs rounded-lg border-1 flex flex-col border-gray-800 shadow-2xl">
+
+
+                                            <div className="flex-1">
                                                 {/* Table Header */}
-                                                <div className="grid grid-cols-[auto_2fr_1fr_1fr_1fr] gap-4 px-5 bg-gray-800/50 sticky top-0 border-b border-gray-700">
+                                                <div className="grid grid-cols-[auto_2fr_1fr_1fr_1fr] gap-4 px-5 bg-gray-800/92 sticky top-0 border-b border-gray-700">
                                                     <div></div>
                                                     <h3 className="text-sm font-semibold text-gray-300 py-3">Member</h3>
                                                     <h3 className="text-sm font-semibold text-gray-300 text-center cursor-pointer hover:bg-black/50 py-3" onClick={() => setSortStatistic('totalHours')}>Total Hours</h3>

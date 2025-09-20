@@ -300,7 +300,7 @@ export default function Dashboard() {
                     <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-4 text-center">
                         <div className="mb-4">
                             <img
-                                src={`https://qrcode.tec-it.com/API/QRCode?data=${memberData?.id}&backcolor=%23ffffff&method=download`}
+                                src={`https://qrcode.tec-it.com/API/QRCode?data=${memberData?.id}&backcolor=%23ffffff&quietzone=2&method=download`}
                                 alt="QR Code"
                                 className="mx-auto max-w-full h-auto"
                             />
