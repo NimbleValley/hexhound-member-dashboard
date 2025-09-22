@@ -9,6 +9,7 @@
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
+    "@lottiefiles/dotlottie-react": "^0.17.1",
     "@react-router/node": "^7.7.1",
     "@supabase/supabase-js": "^2.57.4",
     "html5-qrcode": "^2.3.8",
