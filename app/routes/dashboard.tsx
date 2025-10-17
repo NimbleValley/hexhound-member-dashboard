@@ -77,7 +77,7 @@ export default function Dashboard() {
                     if (time.total_hours && time.session_date) {
                         tempTotal += time.total_hours;
 
-                        let currentWeek = getWeeksSince(new Date('2025-09-10'), new Date(time.session_date));
+                        let currentWeek = getWeeksSince(new Date('2025-10-19'), new Date(time.session_date));
 
                         if (!weekLogBuilder[String(currentWeek)]) {
                             weekLogBuilder[String(currentWeek)] = time.total_hours;

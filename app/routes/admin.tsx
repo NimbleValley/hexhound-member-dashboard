@@ -1,5 +1,5 @@
 import type { Database } from "database.types";
-import { ChartBar, Check, Clock, Home, Minimize, RefreshCcw, TrendingUp, UserRound, UserRoundMinus, UserRoundPen, UserRoundPlus, X } from "lucide-react";
+import { ChartBar, Check, Clock, Eraser, Home, Minimize, RefreshCcw, TrendingUp, UserRound, UserRoundMinus, UserRoundPen, UserRoundPlus, X } from "lucide-react";
 import Html5QrcodePlugin from "public/html5QrcodePlugin";
 import { ADMIN_PASSWORD, supabase } from "public/supabase";
 import type { WeekHourLog } from "public/types";
@@ -134,7 +134,7 @@ export default function Admin() {
             if (time.total_hours && time.session_date) {
                 tempTotal += time.total_hours;
 
-                let currentWeek = getWeeksSince(new Date('2025-09-10'), new Date(time.session_date));
+                let currentWeek = getWeeksSince(new Date('2025-10-19'), new Date(time.session_date));
 
                 if (!weekLogBuilder[String(currentWeek)]) {
                     weekLogBuilder[String(currentWeek)] = time.total_hours;
@@ -261,7 +261,7 @@ export default function Admin() {
 
     const deleteSelected = async () => {
 
-        if (!confirm('Are you sure you want to delete all selected members? You can readd the later but all past records will be permenantly deleted.')) {
+        if (!confirm('Are you sure you want to delete all selected members? This will remove all aspects of them from the database. You can readd them later but all past records will be permenantly deleted.')) {
             return;
         }
 
@@ -284,6 +284,36 @@ export default function Admin() {
         });
 
         alert('Deleted member, may take a few seconds to update. Refresh in top right corner to confirm deletion.');
+
+        setLoading(false);
+        fetchData();
+    }
+
+    const wipeSelected = async () => {
+
+        if (!confirm('Are you sure you want to wipe all data of selected members? This will keep the members in the database but reset all their statistics and numbers to 0. Cannot be undone.')) {
+            return;
+        }
+
+        setLoading(true);
+        selected.forEach(async (item) => {
+            const memberDelete = await supabase
+                .from('members')
+                .update({ clocked_in: false })
+                .eq('id', item)
+
+            const timeDelete = await supabase
+                .from('time_entries')
+                .delete()
+                .eq('member_id', item)
+
+            const matchDelete = await supabase
+                .from('matches_predictions')
+                .delete()
+                .eq('member_id', item)
+        });
+
+        alert('Reset member data, may take a few seconds to update. Refresh in top right corner to confirm wiped data.');
 
         setLoading(false);
         fetchData();
@@ -410,7 +440,7 @@ export default function Admin() {
                     <div className="flex-1 flex items-center justify-center">
                         <div className="bg-black/30 backdrop-blur-lg rounded-2xl p-8 border border-white/20 shadow-2xl max-w-md w-full flex flex-col items-center gap-5">
                             <h1 className="text-3xl font-semibold select-none">Enter Admin Password:</h1>
-                            <input onChange={(e) => { setCurrentPassword(e.target.value) }} className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-300 backdrop-blur-sm focus:outline-none cursor-text focus:ring-2 focus:ring-white/75 focus:border-transparent transition-all duration-300" type="text"></input>
+                            <input type="password" onChange={(e) => { setCurrentPassword(e.target.value) }} className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-300 backdrop-blur-sm focus:outline-none cursor-text focus:ring-2 focus:ring-white/75 focus:border-transparent transition-all duration-300"></input>
                             <button onClick={submitPassword} className="w-full bg-gradient-to-r from-orange-900 to-orange-500 cursor-pointer hover:brightness-75 hover:contrast-120 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-white/75">
                                 Submit
                             </button>
@@ -438,8 +468,14 @@ export default function Admin() {
                                     <UserRoundPlus size={28} />
                                 </button>
                                 {selected.length > 0 &&
+                                    <button onClick={wipeSelected} className="cursor-pointer flex flex-row items-center gap-2 border-yellow-400/10 hover:border-yellow-400/50 border-2 p-1 rounded-sm">
+                                        <h2>Wipe</h2>
+                                        <Eraser size={28} />
+                                    </button>
+                                }
+                                {selected.length > 0 &&
                                     <button onClick={deleteSelected} className="cursor-pointer flex flex-row items-center gap-2 border-red-400/10 hover:border-red-400/50 border-2 p-1 rounded-sm">
-                                        <h2>Delete Selected</h2>
+                                        <h2>Delete</h2>
                                         <UserRoundMinus size={28} />
                                     </button>
                                 }
