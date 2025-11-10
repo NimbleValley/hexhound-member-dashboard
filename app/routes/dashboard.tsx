@@ -70,14 +70,14 @@ export default function Dashboard() {
                 let tempTotal: number = 0;
                 let weekLogs: WeekHourLog[] = [];
 
-                let weekLogBuilder:any = {};
+                let weekLogBuilder: any = {};
 
                 times?.forEach((time) => {
 
                     if (time.total_hours && time.session_date) {
                         tempTotal += time.total_hours;
 
-                        let currentWeek = getWeeksSince(new Date('2025-10-19'), new Date(time.session_date));
+                        let currentWeek = getWeeksSince(new Date('2025-11-2'), new Date(time.session_date));
 
                         if (!weekLogBuilder[String(currentWeek)]) {
                             weekLogBuilder[String(currentWeek)] = time.total_hours;
@@ -96,7 +96,6 @@ export default function Dashboard() {
 
                 setTotalHours(Math.round(tempTotal * 100) / 100);
 
-
                 // Fetch time entries
                 const { data: matchesScouted } = await supabase
                     .from('matches_predictions')
@@ -111,7 +110,7 @@ export default function Dashboard() {
                 matchesScouted?.forEach((value) => {
                     totalPointsCounter += value.total_points ?? 0;
 
-                    if(value.event_key)
+                    if (value.event_key)
                         !eventKeys.includes(value.event_key) ? eventKeys.push(value.event_key) : '';
                 });
 
@@ -181,7 +180,7 @@ export default function Dashboard() {
                 }
 
                 const matches = await response.json();
-                const filtered = matches.filter((item:TBAMatchOutcome) => { return item['comp_level'] == 'qm' });
+                const filtered = matches.filter((item: TBAMatchOutcome) => { return item['comp_level'] == 'qm' });
                 return { 'event_key': key, 'matches': filtered };
             });
 
@@ -291,18 +290,18 @@ export default function Dashboard() {
                     onClick={handleLogout}
                     className="bg-orange-600/40 border-1 border-orange-600 hover:bg-orange-700 px-4 py-2 rounded-lg transition-colors"
                 >
-                    Logout
+                    Home
                 </button>
             </div>
 
             {showQRCode && (
                 <div className="fixed inset-0 z-50 bg-black/90 flex flex-col justify-center items-center">
                     <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-4 text-center">
-                        <div className="mb-4">
+                        <div className="mb-4 p-10 flex justify-center">
                             <img
-                                src={`https://qrcode.tec-it.com/API/QRCode?data=${memberData?.id}&backcolor=%23ffffff&quietzone=2&method=download`}
-                                alt="QR Code"
-                                className="mx-auto max-w-full h-auto"
+                                src={`https://barcode.tec-it.com/barcode.ashx?data=${memberData?.id_barcode}&backcolor=ff0000&quietzone=2&imagetype=Png&dpi=300&method=download`}
+                                alt="Barcode"
+                                className="min-w-full h-full object-cover bg-red-500"
                             />
                         </div>
                         <button

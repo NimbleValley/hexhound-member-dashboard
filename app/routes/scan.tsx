@@ -10,7 +10,7 @@ export default function Scan() {
     const [currentMember, setCurrentMember] = useState<any>();
     const [members, setMembers] = useState<any[]>([]);
 
-    const [selectedID, setSelectedID] = useState<string>();
+    const [selectedBarcodeID, setSelectedBarcodeID] = useState<number>();
 
     const [loading, setLoading] = useState(true);
 
@@ -36,7 +36,8 @@ export default function Scan() {
         const { data: items } = await supabase.from('members').select();
 
         setCurrentMember(null);
-        setSelectedID('');
+
+        setSelectedBarcodeID(-1);
 
         if (items && items.length >= 1) {
             setMembers(items);
@@ -52,7 +53,7 @@ export default function Scan() {
     }, []);
 
     useEffect(() => {
-        const member = members.find(item => String(item.id) === String(selectedID));
+        const member = members.find(item => item.id_barcode === selectedBarcodeID);
 
         console.log(member);
 
@@ -65,10 +66,10 @@ export default function Scan() {
         if (member && member['clocked_in']) 
             playFailed();
 
-    }, [selectedID])
+    }, [selectedBarcodeID])
 
     function handleCode(id: string) {
-        setSelectedID(id);
+        setSelectedBarcodeID(parseInt(id));
     }
 
     const handleClockIn = async (data: string = currentMember) => {
@@ -88,7 +89,7 @@ export default function Scan() {
             const { data, error } = await supabase
                 .from('time_entries')
                 .insert({
-                    member_id: String(selectedID),
+                    member_id: String(member.id),
                     clock_in_time: new Date().toISOString(),
                 });
 
@@ -108,7 +109,7 @@ export default function Scan() {
                 .update({
                     clocked_in: true
                 })
-                .eq('id', String(selectedID));
+                .eq('id_barcode', selectedBarcodeID ?? -1);
 
 
             if (error) throw error;
