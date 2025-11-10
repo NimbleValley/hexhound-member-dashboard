@@ -299,7 +299,7 @@ export default function Dashboard() {
                     <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-4 text-center">
                         <div className="mb-4 p-10 flex justify-center">
                             <img
-                                src={`https://barcode.tec-it.com/barcode.ashx?data=${memberData?.id_barcode}&backcolor=ff0000&quietzone=2&imagetype=Png&dpi=300&method=download`}
+                                src={`https://barcode.tec-it.com/barcode.ashx?data=${memberData?.id_barcode}&backcolor=ff0000&quietzone=2&imagetype=Png&dpi=300&showhrt=no&method=download`}
                                 alt="Barcode"
                                 className="min-w-full h-full object-cover bg-red-500"
                             />

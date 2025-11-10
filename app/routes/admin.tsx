@@ -1,11 +1,13 @@
 import type { Database } from "database.types";
-import { ChartBar, Check, Clock, Eraser, Home, Minimize, RefreshCcw, TrendingUp, UserRound, UserRoundMinus, UserRoundPen, UserRoundPlus, X } from "lucide-react";
+import { ChartBar, Check, Clock, Download, Eraser, Home, Minimize, RefreshCcw, TrendingUp, UserRound, UserRoundMinus, UserRoundPen, UserRoundPlus, X } from "lucide-react";
 import Html5QrcodePlugin from "public/html5QrcodePlugin";
 import { ADMIN_PASSWORD, supabase } from "public/supabase";
 import type { WeekHourLog } from "public/types";
 import { getWeeksSince } from "public/util";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import html2canvas from 'html2canvas-pro';
 import { ResponsiveContainer, CartesianGrid, XAxis, YAxis, Tooltip, Line, LineChart } from "recharts";
+import JsBarcode from "jsbarcode";
 
 type MemberType = Database["public"]["Tables"]["members"]["Row"];
 type EntriesType = Database["public"]["Tables"]["time_entries"]["Row"];
@@ -47,6 +49,8 @@ export default function Admin() {
     const [currentlyCreatingMember, setCurrentlyCreatingMember] = useState<CreateMemberType | null>(null);
     const [currentlyEditingMember, setCurrentlyEditingMember] = useState<MemberType | null>(null);
 
+    const [renderingMemberCard, setRenderingMemberCard] = useState<MemberType | null>(null);
+
     async function fetchData() {
         setLoading(true);
         const { data: items } = await supabase.from('members').select();
@@ -54,6 +58,8 @@ export default function Admin() {
         if (items) {
             setMembers(items);
         }
+
+        //setRenderingMemberCard(items[0]);
 
         const { data: times } = await supabase
             .from('time_entries')
@@ -289,6 +295,32 @@ export default function Admin() {
         fetchData();
     }
 
+    const cardRef = useRef(null);
+    const downloadSelectedCards = async () => {
+        selected.forEach(async (item) => {
+
+            const member = members.find((f) => f.id == item);
+
+            setRenderingMemberCard(member);
+
+            const card = cardRef.current;
+            if (!card) return;
+
+            // temporarily show
+            card.style.display = "block";
+
+            const canvas = await html2canvas(card, {});
+            const link = document.createElement("a");
+            link.href = canvas.toDataURL("image/png");
+            link.download = `${member?.first_name}.png`;
+            link.click();
+
+            // hide again
+            card.style.display = "none";
+
+        });
+    };
+
     const wipeSelected = async () => {
 
         if (!confirm('Are you sure you want to wipe all data of selected members? This will keep the members in the database but reset all their statistics and numbers to 0. Cannot be undone.')) {
@@ -468,6 +500,11 @@ export default function Admin() {
                                     <UserRoundPlus size={28} />
                                 </button>
                                 {selected.length > 0 &&
+                                    <button onClick={downloadSelectedCards} className="cursor-pointer flex flex-row items-center gap-2 border-purple-400/10 hover:border-purple-400/50 border-2 p-1 rounded-sm">
+                                        <Download size={28} />
+                                    </button>
+                                }
+                                {selected.length > 0 &&
                                     <button onClick={wipeSelected} className="cursor-pointer flex flex-row items-center gap-2 border-yellow-400/10 hover:border-yellow-400/50 border-2 p-1 rounded-sm">
                                         <h2>Wipe</h2>
                                         <Eraser size={28} />
@@ -633,6 +670,9 @@ export default function Admin() {
                                             </div>
                                         </div>
                                     }
+
+
+
                                 </div>
                             )
                             }
@@ -641,6 +681,46 @@ export default function Admin() {
                 )}
 
             </div>
+
+            {renderingMemberCard &&
+                <div className="h-full z-100000 absolute">
+                    <div
+                        ref={cardRef}
+                        id="contentToCapture"
+                        className="absolute flex bg-white w-[337px] h-[212px] flex-col overflow-hidden text-black p-0"
+                    >
+                            <div className="text-[40px] ml-2 font-[Brand]">HexHounds</div>
+                        <div className="flex flex-row items-center justify-between gap-4 pl-2 pr-5 w-full">
+                        <div className="font-semibold text-[30px] text-right ">25-26</div>
+                        <div className="font-semibold text-[30px] text-right">{renderingMemberCard.first_name} {renderingMemberCard.last_initial}</div>
+                        </div>
+                        <div className="absolute left-0 bottom-0 justify-center w-[160px]">
+                            <Barcode value={renderingMemberCard?.id_barcode} />
+                        </div>
+                        <div className="absolute right-2 bottom-1 flex justify-center">
+                            <img
+                                src={`/logo.png`}
+                                alt="Logo"
+                                className="w-[130px] object-contain"
+                            />
+                        </div>
+                    </div>
+                </div>
+            }
         </div >
     );
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function Barcode({ value }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current && value) {
+      JsBarcode(ref.current, value, { format: "CODE128", displayValue: false, height: 80 });
+    }
+  }, [value]);
+  return <svg ref={ref} />;
 }
