@@ -1,12 +1,13 @@
 // file = Html5QrcodePlugin.jsx
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5QrcodeScanner, Html5QrcodeScanType, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import type { Html5QrcodeScannerConfig } from 'html5-qrcode/esm/html5-qrcode-scanner';
 import { useEffect } from 'react';
 
 const qrcodeRegionId = "html5qr-code-full-region";
 
 // Creates the configuration object for Html5QrcodeScanner.
-const createConfig = (props) => {
-    let config = {};
+const createConfig = (props):Html5QrcodeScannerConfig => {
+    let config:Html5QrcodeScannerConfig = {};
     if (props.fps) {
         config.fps = props.fps;
     }
@@ -19,6 +20,7 @@ const createConfig = (props) => {
     if (props.disableFlip !== undefined) {
         config.disableFlip = props.disableFlip;
     }
+    config.formatsToSupport = [Html5QrcodeSupportedFormats.CODE_128];
     return config;
 };
 

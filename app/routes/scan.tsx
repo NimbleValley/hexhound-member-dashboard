@@ -183,7 +183,7 @@ export default function Scan() {
                     <div className="flex w-full h-full items-center justify-center">
                         <Html5QrcodePlugin
                             fps={10}
-                            qrbox={300}
+                            qrbox={200}
                             disableFlip={false}
                             qrCodeSuccessCallback={(decodedText: string, decodedResult: any) => {
                                 handleCode(decodedText);
