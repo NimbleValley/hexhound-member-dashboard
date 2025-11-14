@@ -57,13 +57,13 @@ export default function Scan() {
 
         console.log(member);
 
-        if (member)
+        if (member && !showClockInLoading && !loading)
             setCurrentMember(JSON.stringify(member));
 
-        if (member && !member['clocked_in']) 
+        if (member && !member['clocked_in'] && !showClockInLoading && !loading) 
             handleClockIn(JSON.stringify(member));
 
-        if (member && member['clocked_in']) 
+        if (member && member['clocked_in'] && !showClockInLoading && !loading) 
             playFailed();
 
     }, [selectedBarcodeID])
@@ -181,8 +181,9 @@ export default function Scan() {
                 </div>
                 <div className="grid grid-cols-2">
                     <div className="flex w-full h-full items-center justify-center">
+                        
                         <Html5QrcodePlugin
-                            fps={10}
+                            fps={45}
                             qrbox={200}
                             disableFlip={false}
                             qrCodeSuccessCallback={(decodedText: string, decodedResult: any) => {
@@ -193,8 +194,8 @@ export default function Scan() {
                     <div className="flex flex-col items-center justify-around">
                         <ul className="flex flex-col max-w-[75%]">
                             <h1 className="text-3xl font-semibold mb-3">How to use scanner</h1>
-                            <li>- Place qr-code of id card near scanner</li>
-                            <li>- If id card is misplaced, use phone to bring up qr code from the member dashboard, located at the top next to first name</li>
+                            <li>- Place barcode of id card near scanner</li>
+                            <li>- If id card is misplaced, use phone to bring up barcode from the member dashboard, located at the top next to first name</li>
                             <li>- To clock out, use the member dashboard on your phone or admin page on this laptop</li>
                         </ul>
 
