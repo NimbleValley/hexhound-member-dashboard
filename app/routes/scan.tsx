@@ -23,7 +23,7 @@ export default function Scan() {
         const audio = new Audio(positiveSound);
         audio.play();
     };
-    
+
     const playFailed = () => {
         const audio = new Audio(failedSound);
         audio.play();
@@ -60,10 +60,10 @@ export default function Scan() {
         if (member && !showClockInLoading && !loading)
             setCurrentMember(JSON.stringify(member));
 
-        if (member && !member['clocked_in'] && !showClockInLoading && !loading) 
+        if (member && !member['clocked_in'] && !showClockInLoading && !loading)
             handleClockIn(JSON.stringify(member));
 
-        if (member && member['clocked_in'] && !showClockInLoading && !loading) 
+        if (member && member['clocked_in'] && !showClockInLoading && !loading)
             playFailed();
 
     }, [selectedBarcodeID])
@@ -181,7 +181,7 @@ export default function Scan() {
                 </div>
                 <div className="grid grid-cols-2">
                     <div className="flex w-full h-full items-center justify-center">
-                        
+
                         <Html5QrcodePlugin
                             fps={45}
                             qrbox={200}
@@ -191,13 +191,21 @@ export default function Scan() {
                             }}
                         />
                     </div>
-                    <div className="flex flex-col items-center justify-around">
+                    <div className="flex flex-col items-center justify-center gap-3">
                         <ul className="flex flex-col max-w-[75%]">
                             <h1 className="text-3xl font-semibold mb-3">How to use scanner</h1>
                             <li>- Place barcode of id card near scanner</li>
                             <li>- If id card is misplaced, use phone to bring up barcode from the member dashboard, located at the top next to first name</li>
                             <li>- To clock out, use the member dashboard on your phone or admin page on this laptop</li>
                         </ul>
+
+                        <div className="h-[250px] w-[250px] rounded-md bg-white">
+                            <img
+                                className="h-full w-full object-cover rounded-md z-1 select-none"
+                                src="./page-code.png"
+                                alt="Scan background"
+                            />
+                        </div>
 
                         {currentMember && !JSON.parse(currentMember)['clocked_in'] &&
                             <button onClick={() => handleClockIn(currentMember)} className="cursor-pointer gap-10 flex flex-row items-center justify-around font-bold color-gray-900 text-4xl bg-gradient-to-r from-green-700/25 to-green-400/25 px-15 py-10 rounded-xl border-green-300/100 border-1 shadow-xl shadow-green-900/40 hover:shadow-green-500/50 hover:scale-105 transition duration-450">
